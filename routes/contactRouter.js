@@ -8,6 +8,8 @@ contactRouter.use(bodyParser.json())
 contactRouter.route('/')
 .get((req, res, next) => {
     Contact.find()
+    .skip(10*(req.query.page - 1))
+    .limit(10)
     .then(allContacts => {
         if (allContacts) {
             res.statusCode = 200
