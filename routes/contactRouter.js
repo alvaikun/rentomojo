@@ -1,13 +1,26 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const Contact = require('../models/contact')
+// const { put, delete } = require('../app')
 
 const contactRouter = express.Router()
 contactRouter.use(bodyParser.json())
 
 contactRouter.route('/')
 .get((req, res, next) => {
-    res.status(200).json( {msg: 'Route is working' })
+    Contact.find()
+    .then(allContacts => {
+        if (allContacts) {
+            res.statusCode = 200
+            res.contentType('application/json')
+            res.send(allContacts)
+        } else {
+            res.status(404).json({ msg: 'No contact found' })
+        }
+    })
+    .catch(err => {
+        next(err)
+    })
 })
 .post((req, res, next) => {
     if (req.body) {
@@ -27,6 +40,18 @@ contactRouter.route('/')
         res.statusCode(400).json({ msg: 'Please send a request body to create new contact' })
     }
 
+})
+.put((req, res, next) => {
+    res.sendStatus(405)
+})
+.delete((req, res, next) => {
+    Contact.remove({})
+    .then(response => {
+        res.status(200).json(response)
+    })
+    .catch(err => {
+        next(err)
+    })
 })
 
 module.exports = contactRouter
