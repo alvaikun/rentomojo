@@ -7,6 +7,8 @@ var logger = require('morgan');
 const mongoose = require('mongoose')
 const url = require('./config/urls')
 
+const contactRouter = require('./routes/contactRouter')
+
 mongoose.connect(url.mongoURL, { useNewUrlParser: true, useUnifiedTopology: true }, () => {
   console.log('Connected to mongodb')
 })
@@ -28,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/contacts', contactRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
