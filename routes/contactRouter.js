@@ -1,7 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const Contact = require('../models/contact')
-// const { put, delete } = require('../app')
 
 const contactRouter = express.Router()
 contactRouter.use(bodyParser.json())
@@ -46,6 +45,59 @@ contactRouter.route('/')
 })
 .delete((req, res, next) => {
     Contact.remove({})
+    .then(response => {
+        res.status(200).json(response)
+    })
+    .catch(err => {
+        next(err)
+    })
+})
+
+contactRouter.route('/:userEmail')
+.get((req, res, next) => {
+    Contact.findOne({ email: req.params.userEmail })
+    .then(foundContact => {
+        if (foundContact) {
+            res.status(200).json(foundContact)
+        } else {
+            res.status(404).json({ msg: 'Contact with this email address not found' })
+        }
+    })
+    .catch(err => {
+        next(err)
+    })
+})
+.post((req, res, next) => {
+    res.sendStatus(405)
+})
+.put((req, res, next) => {
+    Contact.findOne({ email: req.params.userEmail} )
+    .then(foundContact => {
+        if (foundContact) {
+            if (req.body.name) {
+                foundContact.name = req.body.name
+            }
+            if (req.body.phone) {
+                foundContact.phone = req.body.phone
+            }
+            if (req.body.email) {
+                foundContact.email = req.body.email
+            }
+            foundContact.save()
+            .then(modifiedFoundContact => {
+                res.status(200).json(modifiedFoundContact)
+            })
+            .catch(err => {
+                next(err)
+                res.status(500).json({ msg: 'There was an error in modifying the contact' })
+            })
+        } else {
+            res.status(404).json({ msg: 'Contact with this email address not found' })
+        }
+    })
+})
+.delete((req, res, next) => {
+    Contact.findOneAndDelete({ email: req.params.userEmail} )
     .then(response => {
         res.status(200).json(response)
     })
