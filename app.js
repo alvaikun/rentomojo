@@ -9,8 +9,12 @@ const url = require('./config/urls')
 
 const contactRouter = require('./routes/contactRouter')
 
-mongoose.connect(url.mongoURL, { useNewUrlParser: true, useUnifiedTopology: true }, () => {
-  console.log('Connected to mongodb')
+const connectdb = mongoose.connect(`${url.mongoURLDeployment}`, { useNewUrlParser: true, useUnifiedTopology: true })
+connectdb.then(() => {
+  console.log('connected')
+})
+connectdb.catch(err => {
+  console.log(err)
 })
 
 var indexRouter = require('./routes/index');
