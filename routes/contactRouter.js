@@ -1,12 +1,16 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const Contact = require('../models/contact')
+const cors = require('./cors')
 
 const contactRouter = express.Router()
 contactRouter.use(bodyParser.json())
 
 contactRouter.route('/')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res, next) => {
+    res.sendStatus(200)
+})
+.get(cors.corsWithOptions, (req, res, next) => {
     Contact.find()
     .skip(10*(req.query.page - 1))
     .limit(10)
@@ -23,7 +27,7 @@ contactRouter.route('/')
         next(err)
     })
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     if (req.body) {
         Contact.create(req.body)
         .then(newContact => {
@@ -42,10 +46,10 @@ contactRouter.route('/')
     }
 
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.sendStatus(405)
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     Contact.remove({})
     .then(response => {
         res.status(200).json(response)
@@ -55,8 +59,50 @@ contactRouter.route('/')
     })
 })
 
+contactRouter.route('/search')
+.options(cors.corsWithOptions, (req, res, next) => {
+    res.sendStatus(200)
+})
+.get(cors.corsWithOptions, (req, res, next) => {
+    if (req.query.email && !req.query.name) {
+        Contact.findOne({ email: req.query.email })
+        .skip(10*(req.query.page - 1))
+        .limit(10)
+        .then(foundContact => {
+            if (foundContact) {
+                res.status(200).json(foundContact)
+            } else {
+                res.status(404).json({ msg: 'No contact with this email found' })
+            }
+        })
+        .catch(err => {
+            next(err)
+        })
+    } else if (req.query.name && !req.query.email) {
+        console.log('Finding contacts with name: ', req.query.name)
+        Contact.find({ name: req.query.name })
+        .skip(10*(req.query.page - 1))
+        .limit(10)
+        .then(foundContacts => {
+            if (foundContacts) {
+                res.status(200).json(foundContacts)
+            } else {
+                res.status(404).json({ msg: 'No contact with the searched name' })
+            }
+        })
+        .catch(err => {
+            next(err)
+        })
+    } else {
+        res.sendStatus(400)
+    }
+})
+
 contactRouter.route('/:userEmail')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res, next) => {
+    res.sendStatus(200)
+})
+.get(cors.corsWithOptions, (req, res, next) => {
     Contact.findOne({ email: req.params.userEmail })
     .then(foundContact => {
         if (foundContact) {
@@ -69,10 +115,10 @@ contactRouter.route('/:userEmail')
         next(err)
     })
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     res.sendStatus(405)
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     Contact.findOne({ email: req.params.userEmail} )
     .then(foundContact => {
         if (foundContact) {
@@ -98,7 +144,7 @@ contactRouter.route('/:userEmail')
         }
     })
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     Contact.findOneAndDelete({ email: req.params.userEmail} )
     .then(response => {
         res.status(200).json(response)
